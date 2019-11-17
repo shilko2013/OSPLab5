@@ -3,12 +3,14 @@
 //
 #include <stdio.h>
 #include <sys/ipc.h>
+#include <sys/mman.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
+#include <fcntl.h>
 #include "info.h"
 
 time_t start_t;
-int shm_id, queue_id;
+int shm_id, queue_id, fd;
 
 void init_start_time() {
     start_t = time(NULL);
@@ -83,4 +85,20 @@ void serve_queue_server(info_t *info, int timeout) {
             return;
         sleep(timeout);
     } while (timeout >= 0);
+}
+
+int connect_server_with_mmap_file(info_t** info) {
+    if ((fd = open(MMAP_FILE, O_RDWR | O_CREAT, MODE)) < 0) {
+        perror("error in open");
+        return 0;
+    }
+    if (truncate(MMAP_FILE, sizeof(info_t)) < 0) {
+        perror("error in truncate");
+        return 0;
+    }
+    if ((*info = (info_t *) mmap(0, sizeof(info_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED) {
+        perror("error in mmap");
+        return 0;
+    }
+    return 1;
 }

@@ -4,9 +4,11 @@
 
 #include <stdio.h>
 #include <sys/msg.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 #include "info.h"
 
-int queue_id;
+int queue_id, fd;
 
 void print_info(info_t *info) {
     printf("PID: %li, GID: %li, UID: %li\n", info->pid, info->gid, info->uid);
@@ -65,4 +67,16 @@ void serve_queue_client(info_t *info, int timeout) {
             return;
         sleep(timeout);
     } while (timeout >= 0);
+}
+
+int connect_client_with_mmap_file(info_t** info) {
+    if ((fd = open(MMAP_FILE, O_RDWR | O_CREAT, MODE)) < 0) {
+        perror("error in open");
+        return 0;
+    }
+    if ((*info = (info_t *) mmap(0, sizeof(info_t), PROT_READ, MAP_SHARED, fd,0)) == MAP_FAILED){
+        perror("error in mmap");
+        return 0;
+    }
+    return 1;
 }

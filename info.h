@@ -26,4 +26,8 @@ typedef struct info {
 #define MODE 0640
 #endif //MODE
 
+#ifndef MMAP_FILE
+#define MMAP_FILE "mmap_file"
+#endif //MMAP_FILE
+
 #endif //LAB5_INFO_H

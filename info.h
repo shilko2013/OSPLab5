@@ -30,4 +30,12 @@ typedef struct info {
 #define MMAP_FILE "mmap_file"
 #endif //MMAP_FILE
 
+#ifndef PORT
+#define PORT 1900
+#endif //PORT
+
+#ifndef SOCK_PATH
+#define SOCK_PATH "/tmp/socket_lab5"
+#endif //SOCK_PATH
+
 #endif //LAB5_INFO_H

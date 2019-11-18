@@ -6,9 +6,11 @@
 #include <sys/msg.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <netinet/in.h>
 #include "info.h"
 
 int queue_id, fd;
+int sockfd;
 
 void print_info(info_t *info) {
     printf("PID: %li, GID: %li, UID: %li\n", info->pid, info->gid, info->uid);
@@ -79,4 +81,40 @@ int connect_client_with_mmap_file(info_t** info) {
         return 0;
     }
     return 1;
+}
+
+int connect_client_socket() {
+    if((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        perror("error in socket:");
+        return 0;
+    }
+    return 1;
+}
+
+int get_socket_info(info_t* info) {
+    struct sockaddr_in serv_addr = {
+            .sin_family = AF_UNIX,
+            .sin_port = htons(PORT)
+    };
+    if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("error in connect:");
+        return 0;
+    }
+    if ( read(sockfd, info, sizeof(info_t)) <= 0) {
+        perror("error in read:");
+        return 0;
+    }
+    return 1;
+}
+
+void serve_socket_client(info_t* info, int timeout) {
+    do {
+        if (!get_socket_info(info))
+            return;
+        print_info(info);
+        if (timeout < 0)
+            return;
+        sleep(timeout);
+    } while (timeout >= 0);
+    close(sockfd);
 }

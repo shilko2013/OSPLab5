@@ -7,10 +7,14 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include "info.h"
 
 time_t start_t;
 int shm_id, queue_id, fd;
+int listenfd, connectfd;
+int option = 1;
 
 void init_start_time() {
     start_t = time(NULL);
@@ -27,6 +31,7 @@ void init_server(info_t *info) {
 
 void update(info_t *info) {
     info->time = time(NULL) - start_t;
+    getloadavg(info->system_load, 3);
 }
 
 void serve_server(info_t *info, int timeout) {
@@ -87,7 +92,7 @@ void serve_queue_server(info_t *info, int timeout) {
     } while (timeout >= 0);
 }
 
-int connect_server_with_mmap_file(info_t** info) {
+int connect_server_with_mmap_file(info_t **info) {
     if ((fd = open(MMAP_FILE, O_RDWR | O_CREAT, MODE)) < 0) {
         perror("error in open");
         return 0;
@@ -101,4 +106,39 @@ int connect_server_with_mmap_file(info_t** info) {
         return 0;
     }
     return 1;
+}
+
+int connect_server_socket() {
+    struct sockaddr_in serv_addr = {
+            .sin_family = AF_UNIX,
+            .sin_addr.s_addr = htonl(INADDR_ANY),
+            .sin_port = htons(PORT)
+    };
+    listenfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (listenfd < 0) {
+        perror("error in socket:");
+        return 0;
+    }
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) < 0) {
+        perror("setsockopt failed");
+        close(listenfd);
+        return 0;
+    }
+    if (bind(listenfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        perror("error in bind:");
+        close(listenfd);
+        return 0;
+    }
+    listen(listenfd, 10);
+    return 1;
+}
+
+void serve_socket_server(info_t *info) {
+    while (1) {
+        connectfd = accept(listenfd, (struct sockaddr *) NULL, NULL);
+        update(info);
+        write(connectfd, info, sizeof(info_t));
+        close(connectfd);
+    }
+    close(listenfd);
 }

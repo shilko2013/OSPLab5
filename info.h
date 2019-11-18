@@ -31,7 +31,7 @@ typedef struct info {
 #endif //MMAP_FILE
 
 #ifndef PORT
-#define PORT 1900
+#define PORT 1901
 #endif //PORT
 
 #ifndef SOCK_PATH

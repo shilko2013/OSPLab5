@@ -119,11 +119,11 @@ int connect_server_socket() {
         perror("error in socket:");
         return 0;
     }
-    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) < 0) {
+    /*if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) < 0) {
         perror("setsockopt failed");
         close(listenfd);
         return 0;
-    }
+    }*/
     if (bind(listenfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("error in bind:");
         close(listenfd);

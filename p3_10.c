@@ -27,15 +27,16 @@ int main(int argc, char **argv) {
             perror("error in fork");
             return 1;
         case 0:
-            close(fd[0]);
-            if (    dup2(fd[1], STDIN_FILENO) == -1) {
+            close(fd[1]);
+            if (    dup2(fd[0], STDIN_FILENO) == -1) {
                 perror("error in dup2");
             }
             if (execl("/usr/bin/wc", "wc", (char *) 0) == -1) {
                 perror("error in execl");
             }
+            close(fd[0]);
         default:
-            close(fd[1]);
+            close(fd[0]);
             char buf[BUF_LEN];
             char out[BUF_LEN];
             int r_buf = 0;
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
                 for (i = flag, j = 0; i < r_buf; i += 2, j++) {
                     out[j] = buf[i];
                 }
-                write(fd[0], out, j);
+                write(fd[1], out, j);
                 flag = r_buf % 2;
             }
             if (r_buf == -1) {
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
                 return 1;
             }
             close(file);
-            close(fd[0]);
+            close(fd[1]);
             wait(NULL);
     }
     return 0;

@@ -16,7 +16,9 @@
 time_t start_t;
 int shm_id, queue_id, fd;
 int listenfd = -1, connectfd = -1;
-char * SOCK_PATH = 0;
+char *SOCK_PATH = 0;
+
+info_t* info_sig;
 
 void init_start_time() {
     start_t = time(NULL);
@@ -152,4 +154,26 @@ void serve_socket_server(info_t *info) {
         connectfd = -1;
     }
     close(listenfd);
+}
+
+void print_pid(int sig) { printf("PID: %lu\n", info_sig->pid); }
+
+void print_puid(int sig) { printf("PUID: %lu\n", info_sig->uid); }
+
+void print_pgid(int sig) { printf("PGID: %lu\n", info_sig->gid); }
+
+void print_time(int sig) { printf("TIME: %lu\n", info_sig->time); }
+
+void print_load(int sig) {
+    printf("Average load system time for 1 minute: %.3lf,\n\t 5 minutes: %.3lf,\n\t 15 minutes: %.3lf\n",
+           info_sig->system_load[0], info_sig->system_load[1], info_sig->system_load[2]);
+}
+
+void proc_signals(info_t *info) {
+    info_sig = info;
+    signal(SIGHUP, print_pid);
+    signal(SIGINT, print_puid);
+    signal(SIGTERM, print_pgid);
+    signal(SIGUSR1, print_time);
+    signal(SIGUSR2, print_load);
 }

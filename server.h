@@ -13,5 +13,6 @@ void serve_queue_server(info_t* info, int timeout);
 int connect_server_with_mmap_file(info_t** info);
 int connect_server_socket();
 void serve_socket_server(info_t* info);
+void proc_signals(info_t* info);
 
 #endif //LAB5_SERVER_H

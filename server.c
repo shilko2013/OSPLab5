@@ -8,13 +8,15 @@
 #include <sys/msg.h>
 #include <fcntl.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <signal.h>
+#include <string.h>
+#include <sys/un.h>
 #include "info.h"
 
 time_t start_t;
 int shm_id, queue_id, fd;
-int listenfd, connectfd;
-int option = 1;
+int listenfd = -1, connectfd = -1;
+char * SOCK_PATH = 0;
 
 void init_start_time() {
     start_t = time(NULL);
@@ -108,22 +110,30 @@ int connect_server_with_mmap_file(info_t **info) {
     return 1;
 }
 
+void handle_socket_signal(int signal) {
+    if (listenfd >= 0)
+        close(listenfd);
+    if (connectfd >= 0)
+        close(connectfd);
+}
+
 int connect_server_socket() {
-    struct sockaddr_in serv_addr = {
-            .sin_family = AF_UNIX,
-            .sin_addr.s_addr = htonl(INADDR_ANY),
-            .sin_port = htons(PORT)
+    SOCK_PATH = getenv("HOME");
+    strcat(SOCK_PATH, _SOCK_PATH);
+    signal(SIGABRT, handle_socket_signal);
+    signal(SIGTERM, handle_socket_signal);
+    signal(SIGKILL, handle_socket_signal);
+    signal(SIGINT, handle_socket_signal);
+    struct sockaddr_un serv_addr = {
+            .sun_family= AF_UNIX
     };
+    strcpy(serv_addr.sun_path, SOCK_PATH);
+    unlink(SOCK_PATH);
     listenfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (listenfd < 0) {
         perror("error in socket:");
         return 0;
     }
-    /*if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option)) < 0) {
-        perror("setsockopt failed");
-        close(listenfd);
-        return 0;
-    }*/
     if (bind(listenfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("error in bind:");
         close(listenfd);
@@ -139,6 +149,7 @@ void serve_socket_server(info_t *info) {
         update(info);
         write(connectfd, info, sizeof(info_t));
         close(connectfd);
+        connectfd = -1;
     }
     close(listenfd);
 }

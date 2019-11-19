@@ -6,11 +6,16 @@
 #include <sys/msg.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-#include <netinet/in.h>
+#include <sys/un.h>
+#include <signal.h>
+#include <string.h>
+#include <sys/socket.h>
 #include "info.h"
 
 int queue_id, fd;
-int sockfd;
+int sockfd = -1;
+
+char * SOCK_PATH;
 
 void print_info(info_t *info) {
     printf("PID: %li, GID: %li, UID: %li\n", info->pid, info->gid, info->uid);
@@ -83,7 +88,18 @@ int connect_client_with_mmap_file(info_t** info) {
     return 1;
 }
 
+void handle_client_socket_signal(int signal) {
+    if (sockfd >= 0)
+        close(sockfd);
+}
+
 int connect_client_socket() {
+    SOCK_PATH = getenv("HOME");
+    strcat(SOCK_PATH, _SOCK_PATH);
+    signal(SIGABRT, handle_client_socket_signal);
+    signal(SIGTERM, handle_client_socket_signal);
+    signal(SIGKILL, handle_client_socket_signal);
+    signal(SIGINT, handle_client_socket_signal);
     if((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         perror("error in socket:");
         return 0;
@@ -92,10 +108,10 @@ int connect_client_socket() {
 }
 
 int get_socket_info(info_t* info) {
-    struct sockaddr_in serv_addr = {
-            .sin_family = AF_UNIX,
-            .sin_port = htons(PORT)
+    struct sockaddr_un serv_addr = {
+            .sun_family = AF_UNIX
     };
+    strcpy(serv_addr.sun_path, SOCK_PATH);
     if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("error in connect:");
         return 0;
@@ -104,6 +120,8 @@ int get_socket_info(info_t* info) {
         perror("error in read:");
         return 0;
     }
+    close(sockfd);
+    sockfd = -1;
     return 1;
 }
 
@@ -116,5 +134,4 @@ void serve_socket_client(info_t* info, int timeout) {
             return;
         sleep(timeout);
     } while (timeout >= 0);
-    close(sockfd);
 }

@@ -35,7 +35,7 @@ union semun {
 int sem_id;
 
 const int DATA_LENGTH = 26;
-char *data = "abcdefghijklmnopqrstuvwxyz";
+char data[] = "abcdefghijklmnopqrstuvwxyz";
 
 void take_sem() {
     while (semop(sem_id, &sem_check, 1));
@@ -48,22 +48,26 @@ void free_sem() {
 
 void *change_case(void *args) {
     take_sem();
-    for (int i = 0; i < DATA_LENGTH; ++i)
+    int i;
+    for (i = 0; i < DATA_LENGTH; ++i)
         if (data[i] > 0x60)
             data[i] -= 0x20;
         else
             data[i] += 0x20;
     free_sem();
+    pthread_exit(0);
 }
 
 void *revert(void *args) {
     take_sem();
-    for (int i = 0; i < DATA_LENGTH / 2; ++i) {
+    int i;
+    for (i = 0; i < DATA_LENGTH / 2; ++i) {
         char temp = data[i];
         data[i] = data[DATA_LENGTH - i - 1];
         data[DATA_LENGTH - i - 1] = temp;
     }
     free_sem();
+    pthread_exit(0);
 }
 
 int init_random() {
@@ -86,7 +90,8 @@ int init_random() {
 void print_data() {
     take_sem();
     printf("Data: ");
-    for (int i = 0; i < DATA_LENGTH; ++i) {
+    int i;
+    for (i = 0; i < DATA_LENGTH; ++i) {
         printf("%c ", data[i]);
     }
     printf("\n");

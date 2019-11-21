@@ -12,26 +12,30 @@ pthread_t thread2;
 pthread_attr_t attr_t;
 
 const int DATA_LENGTH = 26;
-char *data = "abcdefghijklmnopqrstuvwxyz";
+char data[] = "abcdefghijklmnopqrstuvwxyz";
 
 void *change_case(void *args) {
     sem_wait(&semaphore);
-    for (int i = 0; i < DATA_LENGTH; ++i)
+    int i;
+    for (i = 0; i < DATA_LENGTH; ++i)
         if (data[i] > 0x60)
             data[i] -= 0x20;
         else
-            data[i] += 0x20;
+            data[i] += + 0x20;
     sem_post(&semaphore);
+    pthread_exit(0);
 }
 
 void *revert(void *args) {
     sem_wait(&semaphore);
-    for (int i = 0; i < DATA_LENGTH / 2; ++i) {
+    int i;
+    for (i = 0; i < DATA_LENGTH / 2; ++i) {
         char temp = data[i];
         data[i] = data[DATA_LENGTH - i - 1];
         data[DATA_LENGTH - i - 1] = temp;
     }
     sem_post(&semaphore);
+    pthread_exit(0);
 }
 
 int init_random() {
@@ -55,7 +59,8 @@ int init_random() {
 void print_data() {
     sem_wait(&semaphore);
     printf("Data: ");
-    for (int i = 0; i < DATA_LENGTH; ++i) {
+    int i;
+    for (i = 0; i < DATA_LENGTH; ++i) {
         printf("%c ", data[i]);
     }
     printf("\n");

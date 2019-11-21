@@ -10,12 +10,13 @@ pthread_t thread2;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 const int DATA_LENGTH = 26;
-char *data = "abcdefghijklmnopqrstuvwxyz";
+char data[] = "abcdefghijklmnopqrstuvwxyz";
 
 void *change_case(void *args) {
     while (1) {
         pthread_mutex_lock(&mutex);
-        for (int i = 0; i < DATA_LENGTH; ++i)
+        int i;
+        for (i = 0; i < DATA_LENGTH; ++i)
             if (data[i] > 0x60)
                 data[i] -= 0x20;
             else
@@ -28,7 +29,8 @@ void *change_case(void *args) {
 void *revert(void *args) {
     while (1) {
         pthread_mutex_lock(&mutex);
-        for (int i = 0; i < DATA_LENGTH / 2; ++i) {
+        int i;
+        for (i = 0; i < DATA_LENGTH / 2; ++i) {
             char temp = data[i];
             data[i] = data[DATA_LENGTH - i - 1];
             data[DATA_LENGTH - i - 1] = temp;
@@ -56,7 +58,8 @@ int init() {
 void print_data() {
     pthread_mutex_lock(&mutex);
     printf("Data: ");
-    for (int i = 0; i < DATA_LENGTH; ++i) {
+    int i;
+    for (i = 0; i < DATA_LENGTH; ++i) {
         printf("%c ", data[i]);
     }
     printf("\n");

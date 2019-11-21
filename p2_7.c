@@ -11,12 +11,13 @@ pthread_t thread3;
 pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 const int DATA_LENGTH = 26;
-char *data = "abcdefghijklmnopqrstuvwxyz";
+char data[] = "abcdefghijklmnopqrstuvwxyz";
 
 void *change_case(void *args) {
     while (1) {
         pthread_rwlock_wrlock(&rwlock);
-        for (int i = 0; i < DATA_LENGTH; ++i)
+        int i;
+        for (i = 0; i < DATA_LENGTH; ++i)
             if (data[i] > 0x60)
                 data[i] -= 0x20;
             else
@@ -29,7 +30,8 @@ void *change_case(void *args) {
 void *revert(void *args) {
     while (1) {
         pthread_rwlock_wrlock(&rwlock);
-        for (int i = 0; i < DATA_LENGTH / 2; ++i) {
+        int i;
+        for (i = 0; i < DATA_LENGTH / 2; ++i) {
             char temp = data[i];
             data[i] = data[DATA_LENGTH - i - 1];
             data[DATA_LENGTH - i - 1] = temp;
@@ -43,7 +45,8 @@ void *print_big_letters_count(void *args) {
     while (1) {
         pthread_rwlock_rdlock(&rwlock);
         int count = 0;
-        for (int i = 0; i < DATA_LENGTH; ++i) {
+        int i;
+        for (i = 0; i < DATA_LENGTH; ++i) {
             if (data[i] > 0x60)
                 ++count;
         }
@@ -75,7 +78,8 @@ int init() {
 void print_data() {
     pthread_rwlock_wrlock(&rwlock);
     printf("Data: ");
-    for (int i = 0; i < DATA_LENGTH; ++i) {
+    int i;
+    for (i = 0; i < DATA_LENGTH; ++i) {
         printf("%c ", data[i]);
     }
     printf("\n");
@@ -84,7 +88,6 @@ void print_data() {
 }
 
 void serve() {
-    init();
     while (1) {
         print_data();
         usleep(WAIT_TIME);
@@ -92,6 +95,7 @@ void serve() {
 }
 
 int main() {
+    init();
     serve();
     return 0;
 }

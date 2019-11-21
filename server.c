@@ -11,6 +11,9 @@
 #include <signal.h>
 #include <string.h>
 #include <sys/un.h>
+#ifdef __sun //for solarisOS
+#include <sys/loadavg.h>
+#endif
 #include "info.h"
 
 time_t start_t;

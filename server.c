@@ -68,16 +68,24 @@ int connect_server_with_queue() {
 }
 
 int serve_queue_server_wait_msg() {
-    char message_wait;
-    if (msgrcv(queue_id, &message_wait, sizeof(message_wait), 1, 0) == -1)
+    queue_util_msg* q_m = malloc(sizeof(queue_util_msg));
+    if (msgrcv(queue_id, q_m, sizeof(queue_util_msg), MSG_UTIL, 0) == -1) {
+        free(q_m);
         return 0;
-    if (message_wait != 'y')
+    }
+    if (q_m->msg != 'y') {
+        free(q_m);
         return 0;
+    }
+    free(q_m);
     return 1;
 }
 
 int server_send_msg(info_t *info) {
-    if (msgsnd(queue_id, info, sizeof(info), 0) == -1) {
+    queue_info_msg* q_m = malloc(sizeof(queue_info_msg));
+    memcpy(&q_m->msg, info, sizeof(info_t));
+    q_m->msg_type = MSG_INFO;
+    if (msgsnd(queue_id, q_m, sizeof(queue_info_msg), 0) == -1) {
         perror("error with msgsnd");
         return 0;
     }

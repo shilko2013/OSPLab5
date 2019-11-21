@@ -18,6 +18,16 @@ typedef struct info {
     double system_load[3];
 } info_t;
 
+typedef struct queue_util_message {
+    long msg_type;
+    char msg;
+} queue_util_msg;
+
+typedef struct queue_info_message {
+    long msg_type;
+    info_t msg;
+} queue_info_msg;
+
 #ifndef SHARED_KEY
 #define SHARED_KEY 8152
 #endif //SHARED_KEY
@@ -33,5 +43,13 @@ typedef struct info {
 #ifndef _SOCK_PATH
 #define _SOCK_PATH "/socket/socket_lab5"
 #endif //SOCK_PATH
+
+#ifndef MSG_INFO
+#define MSG_INFO 2
+#endif //MSG_INFO
+
+#ifndef MSG_UTIL
+#define MSG_UTIL 3
+#endif //MSG_UTIL
 
 #endif //LAB5_INFO_H

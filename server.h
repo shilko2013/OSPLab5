@@ -2,6 +2,8 @@
 // Created by shilk on 11/17/2019.
 //
 
+#include "info.h"
+
 #ifndef LAB5_SERVER_H
 #define LAB5_SERVER_H
 

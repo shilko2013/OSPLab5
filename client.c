@@ -43,31 +43,38 @@ int connect_client_with_queue() {
     return 1;
 }
 
-int client_get_msg(info_t *info) {
-    if (msgrcv(queue_id, info, sizeof(info), 1, 0) == -1)
+int client_get_msg(info_t **info) {
+    queue_info_msg* q_m = malloc(sizeof(queue_info_msg));
+    if (msgrcv(queue_id, q_m, sizeof(queue_info_msg), MSG_INFO, 0) == -1) {
+        free(q_m);
         return 0;
+    }
+    *info = &(q_m->msg);
     return 1;
 }
 
 int client_send_msg(char msg) {
-    if (msgsnd(queue_id, &msg, sizeof(char), 0) == -1) {
+    queue_util_msg q_m;
+    q_m.msg_type = MSG_UTIL;
+    q_m.msg = msg;
+    if (msgsnd(queue_id, &q_m, sizeof(queue_util_msg), 0) == -1) {
         perror("error with msgsnd");
         return 0;
     }
     return 1;
 }
 
-int get_queue_info(info_t *info) {
-    if (client_send_msg('y'))
+int get_queue_info(info_t **info) {
+    if (!client_send_msg('y'))
         return 0;
-    if (client_get_msg(info))
+    if (!client_get_msg(info))
         return 0;
     return 1;
 }
 
 void serve_queue_client(info_t *info, int timeout) {
     do {
-        if (!get_queue_info(info))
+        if (!get_queue_info(&info))
             return;
         print_info(info);
         if (timeout < 0)

@@ -1,4 +1,4 @@
-#! /usr/bin/perl
+#!/usr/bin/perl
 use strict;
 use warnings FATAL => 'all';
 use Socket;
@@ -8,9 +8,9 @@ my $SOCK_PATH = "$ENV{'HOME'}/socket/lab5_socket_perl";
 my $start_time = time();
 my %info = (
     time  => 0,
-    pid   => $PID,
-    uid   => $UID,
-    gid   => (split(/ /, $GID))[0],
+    pid   => $$,
+    uid   => $<,
+    gid   => (split(/ /, $())[0],
     load1 => 0,
     load2 => 0,
     load3 => 0
@@ -76,7 +76,7 @@ sub get_info {
     return(
         sprintf("PID: %li, GID: %li, UID: %li\n", $info{pid}, $info{gid}, $info{uid})
             . sprintf("Server working %li seconds\n ", $info{time})
-            . sprintf("Average load system time for 1 minute: %.3lf,\n\t 5 minutes: %.3lf,\n\t 15 minutes: %.3lf\n",
+            . sprintf("Average load system time for 1 minute: %.2s%%,\n\t 5 minutes: %.2s%%,\n\t 15 minutes: %.2s%%\n",
             $info{load1},
             $info{load2},
             $info{load3})

@@ -2,7 +2,6 @@
 use strict;
 use warnings FATAL => 'all';
 use Socket;
-use English;
 
 my $sgn = -1;
 my $SOCK_PATH = "$ENV{'HOME'}/socket/lab5_socket_perl";
